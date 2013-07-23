@@ -5,7 +5,7 @@ set :sessions, true
 
 BLACKJACK_AMOUNT = 21
 DEALER_MIN_HIT = 17
-
+INITIAL_POT_AMOUNT = 500
 # any methods defined within the helpers block is available
 # in both main.rb and any of the view templates
 helpers do
@@ -77,12 +77,14 @@ helpers do
   def winner!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false # Hide action buttons
+    session[:player_pot] = session[:player_pot] + session[:player_bet]
     @success = "<strong>#{session[:player_name]} wins!  </strong>#{message}"
   end
 
   def loser!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
+    session[:player_pot] = session[:player_pot] - session[:player_bet]
     @error = "<strong>#{session[:player_name]} loses.  </strong> #{message}"
   end
 
@@ -108,6 +110,8 @@ get '/' do # handles default route localhost:9393
 end
 
 get '/new_player' do
+  # Initialize player's pot to $500
+  session[:player_pot] = INITIAL_POT_AMOUNT
   erb :new_player
 end
 
@@ -121,8 +125,36 @@ post '/new_player' do
     halt erb(:new_player)
   end
      session[:player_name] = params[:player_name]
-    # progress to the game above
+    # progress to the betting form
+    redirect '/bet'
+end
+
+get '/bet' do
+  session[:player_bet] = nil  # Clear the bet to play over
+  erb :bet
+end
+
+post '/bet' do # pull bet_amount from params hash posted by bet.erb in STREAMS, so:
+  # If  params[:bet_amount] use quotes to compare to string of zero ('0')
+      # if params[:bet_amount].nil? || params[:bet_amount] == '0'
+  # or use to_i to compare to integer:
+      # if params[:bet_amount].nil? || params[:bet_amount].to_i == 0
+  if params[:bet_amount].nil? || params[:bet_amount].to_i == 0
+    @error = "#{session[:player_name]} must make a bet."
+    halt erb(:bet) #Halt execution and go to erb
+    #Check if bet if > player_pot.  We don't need to call to_i on player_pot because
+    # it's already an integer, vs. bet_amount which is a string sent by form bet.erb
+  elsif
+    params[:bet_amount].to_i < 0
+    @error = "#{session[:player_name]} must make a valid bet."
+    halt erb(:bet) #Halt execution and go to erb
+  elsif params[:bet_amount].to_i > session[:player_pot]
+    @error = "Bet amount cannot be greater than your money on the table: ($#{session[:player_pot]})"
+    halt erb(:bet) #Halt execution and go to erb
+  else
+    session[:player_bet] = params[:bet_amount].to_i
     redirect '/game'
+  end
 end
 
 get '/game' do
