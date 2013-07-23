@@ -219,13 +219,15 @@ get '/game/dealer' do
     redirect '/game/compare'
   else
     #dealer hits
-    @show_dealer_hit_button = true
+    redirect '/game/dealer/hit'
+    # (debugging...WAS @show_dealer_hit_button = true)
   end
 
   erb :game
 end
 
-post '/game/dealer/hit' do
+get '/game/dealer/hit' do
+  # (debugging...WAS post)
   session[:dealer_cards] << session[:deck].pop  # deal a card
   redirect '/game/dealer' # Go back to decision tree
 end
