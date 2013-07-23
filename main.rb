@@ -105,7 +105,8 @@ get '/' do # handles default route localhost:9393
   if session[:player_name] # progress to the game
     redirect '/game' # redirect is a get - below
   else
-    redirect '/new_player' # redirect to new route to display form
+    redirect '/new_player'
+    # redirect '/new_player' # redirect to new route to display form
   end
 end
 
@@ -116,17 +117,47 @@ get '/new_player' do
 end
 
 post '/new_player' do
-  if params[:player_name].empty?
-    @error = "Name is required"
+  # player_name will ONLY contain the params[:player_name] if the string matches...
+  # otherwise it contains nil per:
+  # http://stackoverflow.com/questions/9289451/regular-expression-for-alphabets-with-spaces
+  # It can only contain names and spaces e.g. <Steve Jobs>
+  player_name = params[:player_name][/^[a-zA-Z ]*$/]
+
+  if !player_name || player_name.empty?
+  # if ! player_name || player_name.empty?
+  # checks to see if player name is NOT nil, OR if player name is empty.
+  # If player name does not exist, do error bits.
+  # If player name exists, check if it's empty, and if empty, do error bits.
+  # The second check will only happen if the first one fails (if player name exists).
+
+  # if there's no player name (if it's nil because string didn't match regex),
+  # OR if the player name is empty (can't be nil here), do the error code.
+  # We can also use <unless player_name && !player_name.empty?>
+
+  # unless player_name || !player_name.empty?  will not work because:
+  # In a || (or) condition it will not do the second test if the first test passes
+  # (short-circuit). unless player_name will not pass because player_name doesn't
+  # exist, so to know if it needs to continue, it will evaluate the second part,
+  # and that will produce an error condition because we can't pass nil to .empty?
+
+  # You want to say that (a) player name exists AND (b) player name is not empty
+  # in that situation you don't need to run the error code
+
+  # Therefore, <unless player_name && ! player_name.empty?>
+  # will work (the unless format needs a &&).
+
+  # Another way to do the latter: if params[:player_name].empty?
+
+    @error = "Properly formed name is required with only alphabetical characters."
+
     # Stop action from furthering execution.  Don't execute anything below this,
     # don't continue the action, but render the new_player template again. This
     # is used to force the player to input a name, because if a player does not
     # give a name the grammer on the page does not make sense.
     halt erb(:new_player)
   end
-     session[:player_name] = params[:player_name]
-    # progress to the betting form
-    redirect '/bet'
+    session[:player_name] = params[:player_name]
+    redirect '/bet'  # progress to the betting form
 end
 
 get '/bet' do
@@ -219,15 +250,13 @@ get '/game/dealer' do
     redirect '/game/compare'
   else
     #dealer hits
-    redirect '/game/dealer/hit'
-    # (debugging...WAS @show_dealer_hit_button = true)
+    @show_dealer_hit_button = true
   end
 
   erb :game
 end
 
-get '/game/dealer/hit' do
-  # (debugging...WAS post)
+post '/game/dealer/hit' do
   session[:dealer_cards] << session[:deck].pop  # deal a card
   redirect '/game/dealer' # Go back to decision tree
 end
