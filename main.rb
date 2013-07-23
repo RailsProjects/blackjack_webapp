@@ -50,7 +50,7 @@ helpers do
     value = card[1]
     if ['J', 'Q', 'K', 'A'].include?(value)
       value = case card[1]
-        when 'j' then 'jack'
+        when 'J' then 'jack'
         when 'Q' then 'queen'
         when 'K' then 'king'
         when 'A' then 'ace'
