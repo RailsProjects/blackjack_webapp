@@ -221,8 +221,8 @@ post '/game/player/hit' do
   end
 
   # don't redirect to game here...will reset the deck and start another round
-  # just render the template again instead to take us to game.erb template:
-  erb :game
+  # just render the game template again
+  erb :game, layout: false # just return game template, not layout after ajax hit
 end
 
 post '/game/player/stay' do
