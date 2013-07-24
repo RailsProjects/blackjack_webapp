@@ -1,3 +1,11 @@
+<div id="game">  <!-- give us a handle on game template -->
+  <%if @loser %>
+    <div class="alert alert-error"><%=@loser%></div>
+  <% end %>
+  <%if @winner %>
+    <div class="alert alert-success"><%=@winner%></div>
+  <% end %>
+
 <h1>Welcome to Blackjack.</h1>
 
 <p>Welcome <%= session[:player_name] %>.
@@ -25,7 +33,7 @@
     <% if @show_dealer_hit_button %>
       <p>
         <h5>Dealer has <%= calculate_total(session[:dealer_cards])%> and will hit.</h5>
-        <form action='/game/dealer/hit' method='post'> <!-- #route is /game/dealer/hit -->
+        <form id="dealer_hit" action='/game/dealer/hit' method='post'> <!-- #route is /game/dealer/hit -->
           <input type='submit' class='btn btn-primary' value='Click to see Dealer Card &rarr;'>
         </form>
       </p>
@@ -60,5 +68,5 @@ What would <%= session[:player_name] %> like to do?
   </form>
 <% end %>
 </p>
-
+</div> <!-- end div tag with id="game" -->
 

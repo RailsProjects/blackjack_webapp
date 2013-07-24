@@ -78,20 +78,25 @@ helpers do
     @play_again = true
     @show_hit_or_stay_buttons = false # Hide action buttons
     session[:player_pot] = session[:player_pot] + session[:player_bet]
-    @success = "<strong>#{session[:player_name]} wins!  </strong>#{message}"
+
+    # when we ajaxify the hit button we lose this error msg because this is only
+    # displayed in the layout, and ajaxifying the hit button means the layout is
+    # not displayed again, so the layout is not rendered again, just the game
+    # template, so we need a condition in the game template to display it
+    @winner = "<strong>#{session[:player_name]} wins!  </strong>#{message}"
   end
 
   def loser!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
     session[:player_pot] = session[:player_pot] - session[:player_bet]
-    @error = "<strong>#{session[:player_name]} loses.  </strong> #{message}"
+    @loser = "<strong>#{session[:player_name]} loses.  </strong> #{message}"
   end
 
   def tie!(message)
     @play_again = true
     @show_hit_or_stay_buttons = false
-    @success = "<strong>It's a push.  </strong> #{message}"
+    @winner = "<strong>It's a push.  </strong> #{message}"
   end
 end
 
@@ -223,6 +228,7 @@ post '/game/player/hit' do
   # don't redirect to game here...will reset the deck and start another round
   # just render the game template again
   erb :game, layout: false # just return game template, not layout after ajax hit
+  # However, second hit gives game template w/o layout and CSS
 end
 
 post '/game/player/stay' do
@@ -253,7 +259,7 @@ get '/game/dealer' do
     @show_dealer_hit_button = true
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
 post '/game/dealer/hit' do
@@ -275,7 +281,7 @@ get '/game/compare' do
     tie!("Both #{session[:player_name]} and the Dealer stayed at #{dealer_total}.")
   end
 
-  erb :game
+  erb :game, layout: false
 end
 
 get '/game_over' do
